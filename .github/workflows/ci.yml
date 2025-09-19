@@ -3,11 +3,27 @@ name: example_CI
 on: [push, pull_request]
 
 jobs:
-  build:
+  build-and-test:
     runs-on: ubuntu-latest
 
+    services:
+      mysql:
+        image: mysql:8
+        env:
+          MYSQL_ROOT_PASSWORD: root
+          MYSQL_DATABASE: mydb
+          MYSQL_USER: user
+          MYSQL_PASSWORD: pass
+        ports:
+          - 3306:3306
+
+      mongo:
+        image: mongo:6
+        ports:
+          - 27017:27017
+
     steps:
-      - name: Checkout dépot
+      - name: Checkout dépôt
         uses: actions/checkout@v3
 
       - name: Installer Python
@@ -17,10 +33,11 @@ jobs:
 
       - name: Creer fichier .env
         run: |
-          echo "DB_HOST=localhost" >> .env
+          echo "DB_HOST=mysql" >> .env
           echo "DB_NAME=mydb" >> .env
           echo "DB_USERNAME=user" >> .env
           echo "DB_PASSWORD=pass" >> .env
+          echo "MONGODB_HOST=mongo" >> .env
 
       - name: Installer les dépendances
         run: |
@@ -28,7 +45,10 @@ jobs:
           pip install -r requirements.txt
           pip install pytest
 
-      - name : Lancer les tests
+      - name: Set PYTHONPATH
         run: |
-          cd src
-          python3 -m pytest tests/test_product.py -v
+          export PYTHONPATH=$PWD/src
+
+      - name: Lancer les tests
+        run: |
+          pytest src/tests/ -v
