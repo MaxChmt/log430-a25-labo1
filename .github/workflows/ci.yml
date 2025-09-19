@@ -3,16 +3,8 @@ name: CI
 on: [push, pull_request]
 
 jobs:
-  build-and-test:
+  build:
     runs-on: ubuntu-latest
-    
-    env:
-      MYSQL_HOST: localhost
-      MYSQL_DB_NAME: mydb
-      DB_USERNAME: user
-      DB_PASSWORD: pass
-      MONGODB_HOST: localhost
-
     services:
       mysql:
         image: mysql:8
@@ -21,35 +13,66 @@ jobs:
           MYSQL_DATABASE: mydb
           MYSQL_USER: user
           MYSQL_PASSWORD: pass
-        options: >-
-          --health-cmd "mysqladmin ping -h localhost -u user -ppass --silent"
-          --health-interval 5s
-          --health-timeout 2s
-          --health-retries 10
-
+        ports:
+          - 3306:3306
       mongo:
         image: mongo:6
-        options: >-
-          --health-cmd "mongosh --eval 'db.runCommand({ ping: 1 })'"
-          --health-interval 5s
-          --health-timeout 2s
-          --health-retries 10
+        env:
+          MONGO_INITDB_ROOT_USERNAME: user
+          MONGO_INITDB_ROOT_PASSWORD: pass
+        ports:
+          - 27017:27017
 
     steps:
-      - name: Checkout dépot 
-        uses: actions/checkout@v3 
-      
-      - name: Installer Python 
-        uses: actions/setup-python@v4 
-        with: 
+      - name: Checkout repository
+        uses: actions/checkout@v3
+
+      - name: Install Python
+        uses: actions/setup-python@v4
+        with:
           python-version: '3.11'
 
-      - name: Installer les dépendances 
-        run: | 
-          python -m pip install --upgrade pip 
-          pip install -r requirements.txt 
+      - name: Create .env file
+        run: |
+          echo "MYSQL_HOST=localhost" >> .env
+          echo "MYSQL_PORT=3306" >> .env
+          echo "MYSQL_DB_NAME=mydb" >> .env
+          echo "DB_USERNAME=user" >> .env
+          echo "DB_PASSWORD=pass" >> .env
+          echo "MONGODB_HOST=localhost" >> .env
+          echo "MONGODB_PORT=27017" >> .env
+          echo "MONGO_INITDB_ROOT_USERNAME=user" >> .env
+          echo "MONGO_INITDB_ROOT_PASSWORD=pass" >> .env
+
+      - name: Install Python dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
           pip install pytest
 
-      - name: Run tests
-        run: python3 -m pytest -v
-        working-directory: src
+      - name: Install MySQL client
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y mysql-client
+
+      - name: Wait for MySQL to be ready
+        run: |
+          for i in {1..20}; do
+            if mysqladmin ping --protocol=tcp -h 127.0.0.1 -uroot -proot --silent; then
+              echo "MySQL is ready"
+              exit 0
+            fi
+            echo "Waiting for MySQL (attempt $i)..."
+            sleep 5
+          done
+          echo "MySQL did not become ready in time" >&2
+          exit 1
+
+      - name: Initialize database schema
+        run: |
+          mysql --protocol=tcp -h 127.0.0.1 -uroot -proot mydb < db-init/init.sql
+
+      - name: Launch unit tests on models and data access objects (DAO)
+        run: |
+          cd src 
+          python3 -m pytest 
