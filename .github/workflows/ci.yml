@@ -51,4 +51,5 @@ jobs:
 
       - name: Lancer les tests
         run: |
-          pytest src/tests/ -v
+          cd src
+          python3 -m pytest
