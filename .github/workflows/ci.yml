@@ -42,7 +42,7 @@ jobs:
           echo "MONGODB_HOST=localhost" >> .env
           echo "MONGODB_PORT=27017" >> .env
           echo "MONGO_INITDB_ROOT_USERNAME=user" >> .env
-          echo "MONGO_INITDB_ROOT_PASSWORD=${{ secrets.DB_ROOT_PASSWORD }}"" >> .env
+          echo "MONGO_INITDB_ROOT_PASSWORD=${{ secrets.DB_ROOT_PASSWORD }}" >> .env
 
       - name: Install Python dependencies
         run: |
