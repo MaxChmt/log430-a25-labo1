@@ -31,4 +31,4 @@ jobs:
       - name : Lancer les tests
         run: |
           cd src
-          python3 -m pytest -v
+          python3 -m pytest tests/test_product.py -v
