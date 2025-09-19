@@ -51,6 +51,5 @@ jobs:
           pip install pytest
 
       - name: Run tests
-        run: 
-          cd src
-          pytest -v
+        run: pytest -v
+        working-directory: src
