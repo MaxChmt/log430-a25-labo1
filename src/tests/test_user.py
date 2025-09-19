@@ -1,9 +1,15 @@
-from daos.user_dao import UserDAO
+from daos.user_dao_mongo import UserDAOmongo
 from models.user import User
 
-dao = UserDAO()
+dao = UserDAOmongo()
 
 def test_user_select():
+    user = User(None, 'Test1', 'Test1@example.com')
+    dao.insert(user)
+    user = User(None, 'Test2', 'Test2@example.com')
+    dao.insert(user)
+    user = User(None, 'Test3', 'Test3@example.com')
+    dao.insert(user)
     user_list = dao.select_all()
     assert len(user_list) >= 3
 
