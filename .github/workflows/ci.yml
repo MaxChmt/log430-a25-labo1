@@ -9,17 +9,17 @@ jobs:
       mysql:
         image: mysql:8
         env:
-          MYSQL_ROOT_PASSWORD: root
+          MYSQL_ROOT_PASSWORD: ${{ secrets.MYSQL_ROOT_PASSWORD }}
           MYSQL_DATABASE: mydb
           MYSQL_USER: user
-          MYSQL_PASSWORD: pass
+          MYSQL_PASSWORD: ${{ secrets.DB_PASSWORD }}
         ports:
           - 3306:3306
       mongo:
         image: mongo:6
         env:
           MONGO_INITDB_ROOT_USERNAME: user
-          MONGO_INITDB_ROOT_PASSWORD: pass
+          MONGO_INITDB_ROOT_PASSWORD: ${{ secrets.DB_ROOT_PASSWORD }}
         ports:
           - 27017:27017
 
@@ -38,11 +38,11 @@ jobs:
           echo "MYSQL_PORT=3306" >> .env
           echo "MYSQL_DB_NAME=mydb" >> .env
           echo "DB_USERNAME=user" >> .env
-          echo "DB_PASSWORD=pass" >> .env
+          echo "DB_PASSWORD=${{ secrets.DB_PASSWORD }}" >> .env
           echo "MONGODB_HOST=localhost" >> .env
           echo "MONGODB_PORT=27017" >> .env
           echo "MONGO_INITDB_ROOT_USERNAME=user" >> .env
-          echo "MONGO_INITDB_ROOT_PASSWORD=pass" >> .env
+          echo "MONGO_INITDB_ROOT_PASSWORD=${{ secrets.DB_ROOT_PASSWORD }}"" >> .env
 
       - name: Install Python dependencies
         run: |
