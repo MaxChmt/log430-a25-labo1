@@ -16,11 +16,21 @@ jobs:
           MYSQL_PASSWORD: pass
         ports:
           - 3306:3306
+        options: >-
+          --health-cmd "mysqladmin ping --silent"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 3
 
       mongo:
         image: mongo:6
         ports:
           - 27017:27017
+        options: >-
+          --health-cmd "mongosh --eval 'db.runCommand({ ping: 1 })'"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 3
 
     steps:
       - name: Checkout dépôt
@@ -48,6 +58,20 @@ jobs:
       - name: Set PYTHONPATH
         run: |
           export PYTHONPATH=$PWD/src
+
+      - name: Wait for MySQL
+        run: |
+          until mysqladmin ping -h "mysql" --silent; do
+            echo "Waiting for MySQL..."
+            sleep 2
+          done
+
+      - name: Wait for Mongo
+        run: |
+          until mongosh --host "mongo" --eval "db.adminCommand('ping')"; do
+            echo "Waiting for MongoDB..."
+            sleep 2
+          done
 
       - name: Lancer les tests
         run: |
