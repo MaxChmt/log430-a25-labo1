@@ -7,11 +7,11 @@ jobs:
     runs-on: ubuntu-latest
     
     env:
-      MYSQL_HOST: mysql
+      MYSQL_HOST: localhost
       MYSQL_DB_NAME: mydb
       DB_USERNAME: user
       DB_PASSWORD: pass
-      MONGODB_HOST: mongo
+      MONGODB_HOST: localhost
 
     services:
       mysql:
